@@ -29,7 +29,7 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
-public class Producer {
+public class OrderlyProducer {
     public static void main(String[] args) throws UnsupportedEncodingException {
         try {
             DefaultMQProducer producer = new DefaultMQProducer("please_rename_unique_group_name");
@@ -39,7 +39,7 @@ public class Producer {
             for (int i = 0; i < 100; i++) {
                 int orderId = i % 10;
                 Message msg =
-                    new Message("TopicTestjjj", tags[i % tags.length], "KEY" + i,
+                    new Message("TopicTest", tags[i % tags.length], "KEY" + i,
                         ("Hello RocketMQ " + i).getBytes(RemotingHelper.DEFAULT_CHARSET));
                 SendResult sendResult = producer.send(msg, new MessageQueueSelector() {
                     @Override

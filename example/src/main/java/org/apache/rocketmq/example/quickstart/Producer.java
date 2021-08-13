@@ -18,6 +18,7 @@ package org.apache.rocketmq.example.quickstart;
 
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
+import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
@@ -53,51 +54,27 @@ public class Producer {
         for (int i = 0; i < 1000; i++) {
             try {
 
-                /*
-                 * Create a message instance, specifying topic, tag and message body.
-                 */
                 Message msg = new Message("TopicTest" /* Topic */,
-                    "TagA" /* Tag */,
-                    ("Hello RocketMQ " + i).getBytes(RemotingHelper.DEFAULT_CHARSET) /* Message body */
+                        "TagA" /* Tag */,
+                        ("Hello RocketMQ " + i).getBytes(RemotingHelper.DEFAULT_CHARSET) /* Message body */
                 );
 
                 /*
                  * Call send message to deliver message to one of brokers.
                  */
                 SendResult sendResult = producer.send(msg);
-                /*
-                 * There are different ways to send message, if you don't care about the send result,you can use this way
-                 * {@code
-                 * producer.sendOneway(msg);
-                 * }
-                 */
 
-                /*
-                 * if you want to get the send result in a synchronize way, you can use this send method
-                 * {@code
-                 * SendResult sendResult = producer.send(msg);
-                 * System.out.printf("%s%n", sendResult);
-                 * }
-                 */
+                producer.send(msg, new SendCallback() {
+                    @Override
+                    public void onSuccess(SendResult sendResult) {
+                        // do something
+                    }
 
-                /*
-                 * if you want to get the send result in a asynchronize way, you can use this send method
-                 * {@code
-                 *
-                 *  producer.send(msg, new SendCallback() {
-                 *  @Override
-                 *  public void onSuccess(SendResult sendResult) {
-                 *      // do something
-                 *  }
-                 *
-                 *  @Override
-                 *  public void onException(Throwable e) {
-                 *      // do something
-                 *  }
-                 *});
-                 *
-                 *}
-                 */
+                    @Override
+                    public void onException(Throwable e) {
+                        // do something
+                    }
+                });
 
                 System.out.printf("%s%n", sendResult);
             } catch (Exception e) {
