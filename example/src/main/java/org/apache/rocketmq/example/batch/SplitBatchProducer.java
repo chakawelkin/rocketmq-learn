@@ -29,6 +29,7 @@ public class SplitBatchProducer {
     public static void main(String[] args) throws Exception {
 
         DefaultMQProducer producer = new DefaultMQProducer("BatchProducerGroupName");
+        producer.setNamesrvAddr("127.0.0.1:9876");
         producer.start();
 
         //large batch

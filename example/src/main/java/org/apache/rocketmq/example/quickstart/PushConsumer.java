@@ -28,7 +28,7 @@ import org.apache.rocketmq.common.message.MessageExt;
 /**
  * This example shows how to subscribe and consume messages using providing {@link DefaultMQPushConsumer}.
  */
-public class Consumer {
+public class PushConsumer {
 
     public static void main(String[] args) throws InterruptedException, MQClientException {
 
@@ -72,6 +72,7 @@ public class Consumer {
             }
         });
 
+        consumer.setNamesrvAddr("127.0.0.1:9876");
         /*
          *  Launch the consumer instance.
          */

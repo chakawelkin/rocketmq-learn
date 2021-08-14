@@ -660,6 +660,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
     }
 
     private void checkConfig() throws MQClientException {
+        //consumer group不能为空
         Validators.checkGroup(this.defaultMQPushConsumer.getConsumerGroup());
 
         if (null == this.defaultMQPushConsumer.getConsumerGroup()) {
@@ -669,6 +670,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
                 null);
         }
 
+        //不能是默认消费组
         if (this.defaultMQPushConsumer.getConsumerGroup().equals(MixAll.DEFAULT_CONSUMER_GROUP)) {
             throw new MQClientException(
                 "consumerGroup can not equal "
@@ -678,6 +680,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
                 null);
         }
 
+        //messageModel不能为空，消息模式
         if (null == this.defaultMQPushConsumer.getMessageModel()) {
             throw new MQClientException(
                 "messageModel is null"
@@ -685,6 +688,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
                 null);
         }
 
+        //起始消费位点不能为空
         if (null == this.defaultMQPushConsumer.getConsumeFromWhere()) {
             throw new MQClientException(
                 "consumeFromWhere is null"
@@ -758,7 +762,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
                 null);
         }
 
-        // consumeConcurrentlyMaxSpan
+        // consumeConcurrentlyMaxSpan，消息偏移量跨度，即拉取的最小消息与拉取的最大消息差值默认2000
         if (this.defaultMQPushConsumer.getConsumeConcurrentlyMaxSpan() < 1
             || this.defaultMQPushConsumer.getConsumeConcurrentlyMaxSpan() > 65535) {
             throw new MQClientException(
@@ -882,6 +886,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
     public void subscribe(String topic, String subExpression) throws MQClientException {
         try {
             SubscriptionData subscriptionData = FilterAPI.buildSubscriptionData(topic, subExpression);
+            //订阅数据放入缓存
             this.rebalanceImpl.getSubscriptionInner().put(topic, subscriptionData);
             if (this.mQClientFactory != null) {
                 this.mQClientFactory.sendHeartbeatToAllBrokerWithLock();
