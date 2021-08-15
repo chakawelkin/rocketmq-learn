@@ -64,6 +64,7 @@ public class ProcessQueue {
     private volatile long msgAccCnt = 0;
 
     public boolean isLockExpired() {
+        //最近一次加锁时间
         return (System.currentTimeMillis() - this.lastLockTimestamp) > REBALANCE_LOCK_MAX_LIVE_TIME;
     }
 
@@ -124,6 +125,7 @@ public class ProcessQueue {
         }
     }
 
+    //消息丢入红黑树
     public boolean putMessage(final List<MessageExt> msgs) {
         boolean dispatchToConsume = false;
         try {
@@ -131,6 +133,7 @@ public class ProcessQueue {
             try {
                 int validMsgCnt = 0;
                 for (MessageExt msg : msgs) {
+                    //消息存入红黑树
                     MessageExt old = msgTreeMap.put(msg.getQueueOffset(), msg);
                     if (null == old) {
                         validMsgCnt++;
@@ -165,6 +168,7 @@ public class ProcessQueue {
         return dispatchToConsume;
     }
 
+    //获取当前消息的最大间隔
     public long getMaxSpan() {
         try {
             this.treeMapLock.readLock().lockInterruptibly();
@@ -182,6 +186,7 @@ public class ProcessQueue {
         return 0;
     }
 
+    //返回这批数据的最小偏移量
     public long removeMessage(final List<MessageExt> msgs) {
         long result = -1;
         final long now = System.currentTimeMillis();
