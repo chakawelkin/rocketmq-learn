@@ -951,6 +951,7 @@ public class MQClientInstance {
     }
 
     public void doRebalance() {
+        //循环注册的消费者
         for (Map.Entry<String, MQConsumerInner> entry : this.consumerTable.entrySet()) {
             MQConsumerInner impl = entry.getValue();
             if (impl != null) {

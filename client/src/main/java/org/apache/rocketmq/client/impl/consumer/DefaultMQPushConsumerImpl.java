@@ -234,6 +234,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
             return;
         }
 
+        //限流控制
         long cachedMessageCount = processQueue.getMsgCount().get();
         long cachedMessageSizeInMiB = processQueue.getMsgSize().get() / (1024 * 1024);
 
@@ -257,8 +258,11 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
             return;
         }
 
+        //并发消费
         if (!this.consumeOrderly) {
+            //队列中第一条消息和最后一条消息差值2000，流控
             if (processQueue.getMaxSpan() > this.defaultMQPushConsumer.getConsumeConcurrentlyMaxSpan()) {
+                //延迟50ms
                 this.executePullRequestLater(pullRequest, PULL_TIME_DELAY_MILLS_WHEN_FLOW_CONTROL);
                 if ((queueMaxSpanFlowControlTimes++ % 1000) == 0) {
                     log.warn(
@@ -269,7 +273,9 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
                 return;
             }
         } else {
+            //顺序消费
             if (processQueue.isLocked()) {
+                //这里锁定矫正消费偏移量
                 if (!pullRequest.isPreviouslyLocked()) {
                     long offset = -1L;
                     try {
@@ -291,6 +297,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
                     pullRequest.setNextOffset(offset);
                 }
             } else {
+                //队列已被锁定，延迟3S
                 this.executePullRequestLater(pullRequest, pullTimeDelayMillsWhenException);
                 log.info("pull message later because not locked in broker, {}", pullRequest);
                 return;
@@ -318,6 +325,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
                             //设置下次的拉取偏移量
                             long prevRequestOffset = pullRequest.getNextOffset();
                             pullRequest.setNextOffset(pullResult.getNextBeginOffset());
+                            //记录拉取rt
                             long pullRT = System.currentTimeMillis() - beginTimestamp;
                             DefaultMQPushConsumerImpl.this.getConsumerStatsManager().incPullRT(pullRequest.getConsumerGroup(),
                                 pullRequest.getMessageQueue().getTopic(), pullRT);
@@ -326,12 +334,14 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
                             if (pullResult.getMsgFoundList() == null || pullResult.getMsgFoundList().isEmpty()) {
                                 DefaultMQPushConsumerImpl.this.executePullRequestImmediately(pullRequest);
                             } else {
+                                //第一条消息的offset
                                 firstMsgOffset = pullResult.getMsgFoundList().get(0).getQueueOffset();
-
+                                //记录tps
                                 DefaultMQPushConsumerImpl.this.getConsumerStatsManager().incPullTPS(pullRequest.getConsumerGroup(),
                                     pullRequest.getMessageQueue().getTopic(), pullResult.getMsgFoundList().size());
-
+                                //消息丢入红黑树,加读写锁
                                 boolean dispatchToConsume = processQueue.putMessage(pullResult.getMsgFoundList());
+                                //消息交给consumeMessageService处理
                                 DefaultMQPushConsumerImpl.this.consumeMessageService.submitConsumeRequest(
                                     pullResult.getMsgFoundList(),
                                     processQueue,
@@ -590,6 +600,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
                     this.defaultMQPushConsumer.changeInstanceNameToPID();
                 }
 
+                //MQClientInstance实例化
                 this.mQClientFactory = MQClientManager.getInstance().getOrCreateMQClientInstance(this.defaultMQPushConsumer, this.rpcHook);
 
                 this.rebalanceImpl.setConsumerGroup(this.defaultMQPushConsumer.getConsumerGroup());
@@ -1017,6 +1028,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
 
     @Override
     public void doRebalance() {
+        //消费者服务不暂停，则不执行负载均衡
         if (!this.pause) {
             this.rebalanceImpl.doRebalance(this.isConsumeOrderly());
         }

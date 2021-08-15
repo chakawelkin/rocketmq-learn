@@ -126,6 +126,7 @@ public abstract class ServiceThread implements Runnable {
         }
     }
 
+    //利用countdownLatch实现定时处理
     protected void waitForRunning(long interval) {
         if (hasNotified.compareAndSet(true, false)) {
             this.onWaitEnd();
