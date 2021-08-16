@@ -158,7 +158,9 @@ public class DefaultMessageStore implements MessageStore {
         this.indexService.start();
 
         this.dispatcherList = new LinkedList<>();
+        //consumeQueue
         this.dispatcherList.addLast(new CommitLogDispatcherBuildConsumeQueue());
+        //索引index
         this.dispatcherList.addLast(new CommitLogDispatcherBuildIndex());
 
         File file = new File(StorePathConfigHelper.getLockFile(messageStoreConfig.getStorePathRootDir()));

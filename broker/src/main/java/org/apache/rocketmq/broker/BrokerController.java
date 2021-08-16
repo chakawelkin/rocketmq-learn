@@ -232,6 +232,7 @@ public class BrokerController {
     }
 
     public boolean initialize() throws CloneNotSupportedException {
+        //dir:/home/rocketmq/store/config/topics.json
         boolean result = this.topicConfigManager.load();
 
         result = result && this.consumerOffsetManager.load();
