@@ -31,6 +31,7 @@ public class LitePullConsumerSubscribe {
         litePullConsumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
         litePullConsumer.subscribe("TopicTest", "*");
         litePullConsumer.start();
+        litePullConsumer.commitSync();
         try {
             while (running) {
                 List<MessageExt> messageExts = litePullConsumer.poll();
